@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Deneyap Atölyesi Depo ve Stok Yönetimi Uygulaması - Malzemeleri kolayca takip edin">
+    <title>Deneyap Atölyesi - Depo Yönetimi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    <link rel="icon" type="image/png" href="/assets/deneyap_logo.png">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'deneyap-red': {
+                            50: '#FFF1F1',
+                            100: '#FFE0E0',
+                            200: '#FFC7C7',
+                            300: '#FFA0A0',
+                            400: '#FF6B6B',
+                            500: '#DC2626',
+                            600: '#C41E1E',
+                            700: '#A31818',
+                            800: '#871515',
+                            900: '#6F1414',
+                        },
+                        'deneyap-blue': {
+                            50: '#EFF6FF',
+                            100: '#DBEAFE',
+                            200: '#BFDBFE',
+                            300: '#93C5FD',
+                            400: '#60A5FA',
+                            500: '#2563EB',
+                            600: '#1D4ED8',
+                            700: '#1E40AF',
+                            800: '#1E3A8A',
+                            900: '#1E3357',
+                        },
+                        'deneyap-yellow': {
+                            50: '#FFFBEB',
+                            100: '#FEF3C7',
+                            200: '#FDE68A',
+                            300: '#FCD34D',
+                            400: '#FBBF24',
+                            500: '#EAB308',
+                            600: '#CA8A04',
+                            700: '#A16207',
+                            800: '#854D0E',
+                            900: '#713F12',
+                        },
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'slide-up': 'slideUp 0.4s ease-out',
+                        'slide-down': 'slideDown 0.3s ease-out',
+                        'scale-in': 'scaleIn 0.3s ease-out',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+                        slideDown: { '0%': { transform: 'translateY(-10px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+                        scaleIn: { '0%': { transform: 'scale(0.95)', opacity: '0' }, '100%': { transform: 'scale(1)', opacity: '1' } },
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { font-family: 'Inter', system-ui, sans-serif; }
+        
+        body {
+            background: #0F172A;
+            min-height: 100vh;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #1E293B; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748B; }
+
+        /* Glass effect */
+        .glass {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(71, 85, 105, 0.3);
+        }
+
+        .glass-light {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(71, 85, 105, 0.2);
+        }
+
+        /* Gradient borders */
+        .gradient-border {
+            position: relative;
+        }
+        .gradient-border::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg, #DC2626, #2563EB, #EAB308);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        /* Sidebar */
+        .sidebar-link {
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        .sidebar-link:hover, .sidebar-link.active {
+            background: rgba(37, 99, 235, 0.15);
+            border-left-color: #2563EB;
+            color: #60A5FA;
+        }
+
+        /* Cards */
+        .product-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border-color: rgba(37, 99, 235, 0.5);
+        }
+
+        /* Stock badge animations */
+        .stock-critical {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        /* Modal */
+        .modal-backdrop {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+        }
+
+        /* Background decoration */
+        .bg-decoration {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Toast notifications */
+        .toast {
+            animation: slideDown 0.3s ease-out;
+        }
+
+        /* Loading spinner */
+        .spinner {
+            border: 3px solid rgba(37, 99, 235, 0.2);
+            border-top: 3px solid #2563EB;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Image preview */
+        .img-preview {
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        .img-preview:hover {
+            transform: scale(1.1);
+        }
+
+        /* Status colors */
+        .status-calisan { color: #22C55E; background: rgba(34, 197, 94, 0.1); }
+        .status-bozuk { color: #EF4444; background: rgba(239, 68, 68, 0.1); }
+        .status-garantide { color: #F59E0B; background: rgba(245, 158, 11, 0.1); }
+        .status-demirbas { color: #8B5CF6; background: rgba(139, 92, 246, 0.1); }
+        .status-kirik { color: #F97316; background: rgba(249, 115, 22, 0.1); }
+
+        /* Number input styling */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+
+        /* Mobile sidebar */
+        @media (max-width: 1024px) {
+            .sidebar-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 40;
+            }
+        }
+    </style>
+</head>
+<body class="text-gray-200">
+    <!-- Background decorations -->
+    <div class="bg-decoration" style="width: 600px; height: 600px; background: #DC2626; top: -200px; left: -200px;"></div>
+    <div class="bg-decoration" style="width: 500px; height: 500px; background: #2563EB; bottom: -150px; right: -150px;"></div>
+    <div class="bg-decoration" style="width: 400px; height: 400px; background: #EAB308; top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
+
+    <!-- Login Page -->
+    <div id="loginPage" class="min-h-screen flex items-center justify-center p-4 relative z-10">
+        <div class="w-full max-w-md animate-scale-in">
+            <div class="glass rounded-2xl p-8 shadow-2xl">
+                <!-- Logo -->
+                <div class="text-center mb-8">
+                    <img src="/assets/deneyap_logo.png" alt="Deneyap Logo" class="h-16 mx-auto mb-4">
+                    <h1 class="text-2xl font-bold bg-gradient-to-r from-deneyap-red-400 via-deneyap-blue-400 to-deneyap-yellow-400 bg-clip-text text-transparent">
+                        Depo Yönetimi
+                    </h1>
+                    <p class="text-gray-400 mt-2 text-sm">Atölye stok takip sistemi</p>
+                </div>
+
+                <form id="loginForm" class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">E-posta</label>
+                        <div class="relative">
+                            <span class="material-icons-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xl">email</span>
+                            <input type="email" id="loginEmail" required
+                                class="w-full bg-slate-800/50 border border-slate-600/50 rounded-xl pl-11 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-deneyap-blue-500 focus:ring-1 focus:ring-deneyap-blue-500 transition-all"
+                                placeholder="e-posta@deneyap.org">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Şifre</label>
+                        <div class="relative">
+                            <span class="material-icons-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xl">lock</span>
+                            <input type="password" id="loginPassword" required
+                                class="w-full bg-slate-800/50 border border-slate-600/50 rounded-xl pl-11 pr-12 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-deneyap-blue-500 focus:ring-1 focus:ring-deneyap-blue-500 transition-all"
+                                placeholder="••••••••">
+                            <button type="button" onclick="togglePasswordVisibility('loginPassword', this)" class="material-icons-outlined absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors cursor-pointer">visibility</button>
+                        </div>
+                    </div>
+
+                    <div id="loginError" class="hidden text-red-400 text-sm bg-red-400/10 p-3 rounded-lg"></div>
+
+                    <button type="submit" id="loginBtn"
+                        class="w-full bg-gradient-to-r from-deneyap-red-500 via-deneyap-blue-500 to-deneyap-yellow-500 text-white font-semibold py-3 rounded-xl hover:opacity-90 transition-all duration-300 shadow-lg hover:shadow-deneyap-blue-500/25 flex items-center justify-center gap-2">
+                        <span class="material-icons-outlined text-xl">login</span>
+                        Giriş Yap
+                    </button>
+
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="hidden relative z-10">
+        <!-- Mobile Menu Button -->
+        <button id="mobileMenuBtn" class="lg:hidden fixed top-4 left-4 z-50 glass rounded-xl p-2 text-gray-300 hover:text-white">
+            <span class="material-icons-outlined text-2xl">menu</span>
+        </button>
+
+        <!-- Sidebar Overlay (mobile) -->
+        <div id="sidebarOverlay" class="hidden sidebar-overlay lg:hidden" onclick="toggleSidebar()"></div>
+
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed top-0 left-0 h-full w-72 glass z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 flex flex-col">
+            <!-- Logo & User -->
+            <div class="p-5 border-b border-slate-700/50">
+                <div class="flex items-center gap-3 mb-4">
+                    <img src="/assets/deneyap_logo.png" alt="Logo" class="h-10">
+                    <div>
+                        <h2 class="font-bold text-sm text-white">Deneyap Atölyesi</h2>
+                        <p class="text-xs text-gray-400">Depo Yönetimi v1.0</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 bg-slate-800/50 p-3 rounded-xl">
+                    <div class="w-9 h-9 rounded-full bg-gradient-to-br from-deneyap-blue-500 to-deneyap-red-500 flex items-center justify-center text-white font-bold text-sm" id="userAvatar">A</div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-white truncate" id="userName">Admin</p>
+                        <p class="text-xs text-gray-400" id="userRole">Admin</p>
+                    </div>
+                    <button onclick="logout()" class="text-gray-400 hover:text-red-400 transition-colors" title="Çıkış">
+                        <span class="material-icons-outlined text-xl">logout</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
+                <a href="#" class="sidebar-link active flex items-center gap-3 px-4 py-3 rounded-xl text-sm" data-page="dashboard" onclick="navigateTo('dashboard')">
+                    <span class="material-icons-outlined text-xl">dashboard</span>
+                    <span>Ana Panel</span>
+                </a>
+                <a href="#" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm" data-page="products" onclick="navigateTo('products')">
+                    <span class="material-icons-outlined text-xl">inventory_2</span>
+                    <span>Ürünler</span>
+                    <span id="productCountBadge" class="ml-auto bg-deneyap-blue-500/20 text-deneyap-blue-400 text-xs px-2 py-0.5 rounded-full">0</span>
+                </a>
+                <a href="#" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm" data-page="warehouses" onclick="navigateTo('warehouses')">
+                    <span class="material-icons-outlined text-xl">warehouse</span>
+                    <span>Depolar</span>
+                </a>
+                <a href="#" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm" data-page="shipments" onclick="navigateTo('shipments')">
+                    <span class="material-icons-outlined text-xl">local_shipping</span>
+                    <span>Gönderimler</span>
+                </a>
+                <a href="#" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm" data-page="courses" onclick="navigateTo('courses')">
+                    <span class="material-icons-outlined text-xl">school</span>
+                    <span>Dersler</span>
+                </a>
+                <a href="#" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm" data-page="reports" onclick="navigateTo('reports')">
+                    <span class="material-icons-outlined text-xl">assessment</span>
+                    <span>Raporlar</span>
+                </a>
+
+                <div class="pt-4 pb-2 px-4">
+                    <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Yönetim</p>
+                </div>
+
+                <a href="#" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-sm admin-only" data-page="users" onclick="navigateTo('users')">
+                    <span class="material-icons-outlined text-xl">people</span>
+                    <span>Kullanıcılar</span>
+                </a>
+            </nav>
+
+            <!-- Bottom -->
+            <div class="p-4 border-t border-slate-700/50">
+                <div id="lowStockAlert" class="hidden bg-red-500/10 border border-red-500/20 rounded-xl p-3">
+                    <div class="flex items-center gap-2 text-red-400 text-xs font-medium">
+                        <span class="material-icons-outlined text-base stock-critical">warning</span>
+                        <span id="lowStockText">0 ürün kritik stokta</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="lg:ml-72 min-h-screen">
+            <!-- Top Bar -->
+            <header class="sticky top-0 z-30 glass-light border-b border-slate-700/30 px-4 lg:px-8 py-4">
+                <div class="flex items-center gap-4">
+                    <div class="lg:hidden w-8"></div>
+                    <div class="flex-1 max-w-xl">
+                        <div class="relative">
+                            <span class="material-icons-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">search</span>
+                            <input type="text" id="globalSearch" 
+                                class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-deneyap-blue-500 transition-all"
+                                placeholder="Ürün adı veya açıklama ile ara...">
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="navigateTo('products'); setTimeout(() => document.getElementById('addProductBtn')?.click(), 100)" 
+                            class="hidden sm:flex items-center gap-2 bg-deneyap-blue-500 hover:bg-deneyap-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-all admin-only">
+                            <span class="material-icons-outlined text-lg">add</span>
+                            Ürün Ekle
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div id="pageContent" class="p-4 lg:p-8">
+                <!-- Pages will be rendered here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="fixed top-4 right-4 z-[100] space-y-2"></div>
+
+    <!-- Modal Container -->
+    <div id="modalContainer" class="hidden fixed inset-0 z-[90]"></div>
+
+    <script src="/static/js/api.js?v=3"></script>
+    <script src="/static/js/app.js?v=3"></script>
+    <script src="/static/js/dashboard.js?v=3"></script>
+    <script src="/static/js/products.js?v=3"></script>
+    <script src="/static/js/product-detail.js?v=3"></script>
+    <script src="/static/js/warehouses.js?v=3"></script>
+    <script src="/static/js/pages.js?v=3"></script>
+</body>
+</html>

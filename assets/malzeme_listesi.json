@@ -1,0 +1,387 @@
+[
+    {
+        "isim": "20w Güneş Paneli",
+        "görsel": "assets/images/image1.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Güneş Paneli Kablo Seti",
+        "görsel": "assets/images/image2.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Güneş Paneli Şarj Kontrol Cihazı",
+        "görsel": "assets/images/image3.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Modifiye Sinüs İnverter",
+        "görsel": "assets/images/image4.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Akü",
+        "görsel": "assets/images/image5.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Akü Şarj Cihazı",
+        "görsel": "assets/images/image6.png",
+        "miktar": 100
+    },
+    {
+        "isim": "İzole Pabuç(Kablo Ucu) Seti",
+        "görsel": "assets/images/image7.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Sıkma Pensesi Seti",
+        "görsel": "assets/images/image8.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Mekanik Kablo Soyucu",
+        "görsel": "assets/images/image9.png",
+        "miktar": 100
+    },
+    {
+        "isim": "1 W Güneş Paneli",
+        "görsel": "assets/images/image10.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Mini Solar Li-Po Şarj Cihazı Modülü",
+        "görsel": "assets/images/image11.png",
+        "miktar": 100
+    },
+    {
+        "isim": "JST Konnektörlü Kablo Seti",
+        "görsel": "assets/images/image12.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Universal Pil Şarj Cihazı",
+        "görsel": "assets/images/image13.png",
+        "miktar": 100
+    },
+    {
+        "isim": "AAA Kalem Pil",
+        "görsel": "assets/images/image14.png",
+        "miktar": 100
+    },
+    {
+        "isim": "AA Kalem Pil",
+        "görsel": "assets/images/image15.png",
+        "miktar": 100
+    },
+    {
+        "isim": " AA Kalem Pil (MnO2)",
+        "görsel": "assets/images/image16.png",
+        "miktar": 100
+    },
+    {
+        "isim": "AA Kalem Pil (NiCd)",
+        "görsel": "assets/images/image17.png",
+        "miktar": 100
+    },
+    {
+        "isim": "AA Şarj Edilebilir Kalem Pil",
+        "görsel": "assets/images/image18.png",
+        "miktar": 100
+    },
+    {
+        "isim": "18650 Pil",
+        "görsel": "assets/images/image19.png",
+        "miktar": 100
+    },
+    {
+        "isim": "26650 Pil",
+        "görsel": "assets/images/image20.png",
+        "miktar": 100
+    },
+    {
+        "isim": "AA Pil Yuvası",
+        "görsel": "assets/images/image21.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Krokodil Kablo",
+        "görsel": "assets/images/image22.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Deney Ampul Duyu",
+        "görsel": "assets/images/image23.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Deney Ampulü",
+        "görsel": "assets/images/image24.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Mini Dalgıç Su Pompası",
+        "görsel": "assets/images/image25.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Taş Direnç Seti",
+        "görsel": "assets/images/image26.png",
+        "miktar": 100
+    },
+    {
+        "isim": "On/Off Anahtar",
+        "görsel": "assets/images/image27.png",
+        "miktar": 100
+    },
+    {
+        "isim": "DC Fan",
+        "görsel": "assets/images/image28.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Kanat Seti",
+        "görsel": "assets/images/image29.png",
+        "miktar": 100
+    },
+    {
+        "isim": "DC Dinamo",
+        "görsel": "assets/images/image30.png",
+        "miktar": 100
+    },
+    {
+        "isim": " Tek Kanat Pervane ve Jeneratör Seti",
+        "görsel": "assets/images/image31.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Düşey Eksenli Heliks Rüzgar Türbini Seti",
+        "görsel": "assets/images/image32.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Düşey Eksenli Çok Kanatlı Rüzgar Türbini",
+        "görsel": "assets/images/image33.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Su Çarkı",
+        "görsel": "assets/images/image34.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Buhar Türbini Modeli",
+        "görsel": "assets/images/image35.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Mini Buhar Türbini",
+        "görsel": "assets/images/image36.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Hidrojen Enerjisi Deney Seti",
+        "görsel": "assets/images/image37.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Taşınabilir Aydınlatma Projektör ve Ampul Seti",
+        "görsel": "assets/images/image38.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Halojen Ampul",
+        "görsel": "assets/images/image39.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Dimmer",
+        "görsel": "assets/images/image40.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Seyyar Elektrik Kablosu",
+        "görsel": "assets/images/image41.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Erkek Fiş Başı",
+        "görsel": "assets/images/image42.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Topraklı Grup Priz",
+        "görsel": "assets/images/image43.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Vantilatör",
+        "görsel": "assets/images/image44.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Akvaryum Kumu",
+        "görsel": "assets/images/image45.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Ahşap Boncuk",
+        "görsel": "assets/images/image46.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Plastik Defter Kabı",
+        "görsel": "assets/images/image47.png",
+        "miktar": 100
+    },
+    {
+        "isim": " Sıcak Silikon Tabancası",
+        "görsel": "assets/images/image48.png",
+        "miktar": 100
+    },
+    {
+        "isim": " Sıcak Silikon Mumu",
+        "görsel": "assets/images/image49.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Buzluk",
+        "görsel": "assets/images/image50.png",
+        "miktar": 100
+    },
+    {
+        "isim": " Saklama Kabı – 7.5 Litre",
+        "görsel": "assets/images/image51.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Saklama Kabı (1.5 Litre)",
+        "görsel": "assets/images/image52.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Saklama Kabı (5 Litre)",
+        "görsel": "assets/images/image53.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Çanta Bidon",
+        "görsel": "assets/images/image54.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Karton Kutu",
+        "görsel": "assets/images/image55.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Koli Bandı",
+        "görsel": "assets/images/image56.png",
+        "miktar": 100
+    },
+    {
+        "isim": "MDF Levha",
+        "görsel": "assets/images/image57.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Montaj Kaidesi Seti",
+        "görsel": "assets/images/image58.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Plastik Kaşık Seti",
+        "görsel": "assets/images/image59.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Çelik Çubuk",
+        "görsel": "assets/images/image60.png",
+        "miktar": 100
+    },
+    {
+        "isim": " Laboratuvar Stand Seti",
+        "görsel": "assets/images/image61.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Destilasyon Balonu",
+        "görsel": "assets/images/image62.png",
+        "miktar": 100
+    },
+    {
+        "isim": "İspirto Ocağı Seti",
+        "görsel": "assets/images/image63.png",
+        "miktar": 100
+    },
+    {
+        "isim": "İspirto Ocağı Yakıtı",
+        "görsel": "assets/images/image64.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Çakmak",
+        "görsel": "assets/images/image65.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Teflon Hortum Seti",
+        "görsel": "assets/images/image66.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Şeffaf Hortum Seti",
+        "görsel": "assets/images/image67.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Pnömatik Bağlantı Elemanları",
+        "görsel": "assets/images/image68.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Hortum Kelepçesi",
+        "görsel": "assets/images/image69.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Saf Su",
+        "görsel": "assets/images/image70.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Gıda Boyası",
+        "görsel": "assets/images/image71.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Sodyum Sülfat",
+        "görsel": "assets/images/image72.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Analog Multimetre",
+        "görsel": "assets/images/image73.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Dijital Multimetre 600V 10 A",
+        "görsel": "assets/images/image74.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Lüxmetre",
+        "görsel": "assets/images/image75.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Anemometre",
+        "görsel": "assets/images/image76.png",
+        "miktar": 100
+    },
+    {
+        "isim": "Kızılötesi Termometre",
+        "görsel": "assets/images/image77.png",
+        "miktar": 100
+    }
+]

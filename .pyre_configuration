@@ -1,0 +1,17 @@
+{
+  "source_directories": [
+    "backend"
+  ],
+  "search_path": [
+    "venv/Lib/site-packages",
+    "venv/Lib/site-packages/fastapi",
+    "venv/Lib/site-packages/sqlalchemy",
+    "venv/Lib/site-packages/openpyxl",
+    "venv/Lib/site-packages/reportlab"
+  ],
+  "exclude": [
+    ".*/__pycache__/.*",
+    "venv/.*"
+  ],
+  "site_package_search_strategy": "pep561"
+}
