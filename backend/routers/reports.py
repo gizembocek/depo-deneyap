@@ -6,7 +6,18 @@ from models import Product, StockLog, User, Course
 from auth import get_current_user, SECRET_KEY, ALGORITHM
 from jose import jwt
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+
+TZ_TR = timezone(timedelta(hours=3))
+
+def to_tr_time(dt):
+    """UTC datetime'ı Türkiye saatine (UTC+3) çevirir."""
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(TZ_TR).isoformat()
+
 import io
 
 router = APIRouter(prefix="/api/reports", tags=["Reports"])
@@ -78,7 +89,7 @@ def get_all_logs(
         "previous_value": log.previous_value,
         "new_value": log.new_value,
         "note": log.note,
-        "created_at": log.created_at.isoformat()
+        "created_at": to_tr_time(log.created_at)
     } for log in logs]
 
 
@@ -172,7 +183,7 @@ def export_excel(
             product.critical_stock,
             product.ideal_stock,
             product.status,
-            product.updated_at.strftime("%d.%m.%Y %H:%M") if product.updated_at else ""
+            product.updated_at.replace(tzinfo=timezone.utc).astimezone(TZ_TR).strftime("%d.%m.%Y %H:%M") if product.updated_at else ""
         ]
 
         for col, val in enumerate(values, 1):
@@ -196,7 +207,7 @@ def export_excel(
     wb.save(output)
     output.seek(0)
 
-    filename = f"deneyap_stok_raporu_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
+    filename = f"deneyap_stok_raporu_{datetime.now(timezone.utc).astimezone(TZ_TR).strftime('%Y%m%d_%H%M')}.xlsx"
 
     return StreamingResponse(
         output,
@@ -265,7 +276,7 @@ def export_pdf(
     elements.append(title)
     elements.append(Spacer(1, 10*mm))
 
-    date_text = Paragraph(f"Rapor Tarihi: {datetime.now().strftime('%d.%m.%Y %H:%M')}", styles['Normal'])
+    date_text = Paragraph(f"Rapor Tarihi: {datetime.now(timezone.utc).astimezone(TZ_TR).strftime('%d.%m.%Y %H:%M')}", styles['Normal'])
     elements.append(date_text)
     elements.append(Spacer(1, 5*mm))
 
@@ -300,7 +311,7 @@ def export_pdf(
     doc.build(elements)
     output.seek(0)
 
-    filename = f"deneyap_stok_raporu_{datetime.now().strftime('%Y%m%d_%H%M')}.pdf"
+    filename = f"deneyap_stok_raporu_{datetime.now(timezone.utc).astimezone(TZ_TR).strftime('%Y%m%d_%H%M')}.pdf"
 
     return StreamingResponse(
         output,

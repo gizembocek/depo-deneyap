@@ -1,121 +1,137 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from database import get_db
-from models import Shipment, ShipmentItem, Product, User
-from schemas import ShipmentCreate, ShipmentResponse, ShipmentItemResponse
-from auth import get_current_user, get_admin_user
+from models import Shipment, ShipmentItem, Product, User, StockLog
+from schemas import ShipmentCreate, ShipmentResponse, ShipmentItemResponse, ShipmentTypeSchema
+from auth import get_current_user
 from typing import List
+from datetime import datetime
 
 router = APIRouter(prefix="/api/shipments", tags=["Shipments"])
 
 
+def build_shipment_response(s: Shipment) -> dict:
+    """Shipment ORM nesnesini, product_name dahil tam bir dict'e çevirir."""
+    items = []
+    for item in s.items:
+        items.append({
+            "id": item.id,
+            "product_id": item.product_id,
+            "expected_quantity": item.expected_quantity,
+            "actual_quantity": item.actual_quantity,
+            "status": item.status,
+            "product_name": item.product.name if item.product else None
+        })
+    return {
+        "id": s.id,
+        "name": s.name,
+        "shipment_type": s.shipment_type,
+        "outgoing_reason": s.outgoing_reason,
+        "arrival_image_url": s.arrival_image_url,
+        "visual_image_url": s.visual_image_url,
+        "invoice_image_url": s.invoice_image_url,
+        "shipment_date": s.shipment_date,
+        "check_date": s.check_date,
+        "status": s.status,
+        "notes": s.notes,
+        "created_by": s.created_by,
+        "created_at": s.created_at,
+        "items": items
+    }
+
+
 @router.get("/", response_model=List[ShipmentResponse])
 def list_shipments(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    shipments = db.query(Shipment).order_by(Shipment.created_at.desc()).all()
-    result = []
-    for s in shipments:
-        items = []
-        for item in s.items:
-            items.append(ShipmentItemResponse(
-                id=item.id,
-                product_id=item.product_id,
-                expected_quantity=item.expected_quantity,
-                actual_quantity=item.actual_quantity,
-                status=item.status,
-                product_name=item.product.name if item.product else None
-            ))
-        result.append(ShipmentResponse(
-            id=s.id,
-            name=s.name,
-            shipment_date=s.shipment_date,
-            check_date=s.check_date,
-            status=s.status,
-            notes=s.notes,
-            created_by=s.created_by,
-            created_at=s.created_at,
-            items=items
-        ))
-    return result
+    shipments = (
+        db.query(Shipment)
+        .options(joinedload(Shipment.items).joinedload(ShipmentItem.product))
+        .order_by(Shipment.created_at.desc())
+        .all()
+    )
+    return [build_shipment_response(s) for s in shipments]
 
 
 @router.post("/", response_model=ShipmentResponse)
 def create_shipment(data: ShipmentCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    shipment = Shipment(
+    # 1. Ana Gönderimi Oluştur
+    new_shipment = Shipment(
         name=data.name,
+        shipment_type=data.shipment_type,
+        outgoing_reason=data.outgoing_reason,
+        arrival_image_url=data.arrival_image_url,
+        visual_image_url=data.visual_image_url,
+        invoice_image_url=data.invoice_image_url,
         shipment_date=data.shipment_date,
         check_date=data.check_date,
         notes=data.notes,
-        created_by=current_user.id
+        created_by=current_user.id,
+        status="pending"
     )
-    db.add(shipment)
+    db.add(new_shipment)
     db.flush()
 
+    # 2. Ürünleri İşle ve LOG Oluştur
     for item_data in data.items:
+        # actual_quantity varsa onu kullan, yoksa expected_quantity
+        qty_to_use = item_data.actual_quantity if item_data.actual_quantity is not None else item_data.expected_quantity
+
+        # Durum hesapla
+        if item_data.actual_quantity is None:
+            item_status = "pending"
+        elif item_data.actual_quantity == item_data.expected_quantity:
+            item_status = "complete"
+        elif item_data.actual_quantity < item_data.expected_quantity:
+            item_status = "missing"
+        else:
+            item_status = "extra"
+
         item = ShipmentItem(
-            shipment_id=shipment.id,
+            shipment_id=new_shipment.id,
             product_id=item_data.product_id,
-            expected_quantity=item_data.expected_quantity
+            expected_quantity=item_data.expected_quantity,
+            actual_quantity=item_data.actual_quantity,
+            status=item_status
         )
         db.add(item)
 
-    db.commit()
-    db.refresh(shipment)
+        # Ürünü bul ve stoğu güncelle (actual_quantity üzerinden)
+        product = db.query(Product).filter(Product.id == item_data.product_id).first()
+        if product:
+            old_stock = product.current_stock
 
-    items = []
-    for item in shipment.items:
-        items.append(ShipmentItemResponse(
-            id=item.id,
-            product_id=item.product_id,
-            expected_quantity=item.expected_quantity,
-            actual_quantity=item.actual_quantity,
-            status=item.status,
-            product_name=item.product.name if item.product else None
-        ))
-
-    return ShipmentResponse(
-        id=shipment.id,
-        name=shipment.name,
-        shipment_date=shipment.shipment_date,
-        check_date=shipment.check_date,
-        status=shipment.status,
-        notes=shipment.notes,
-        created_by=shipment.created_by,
-        created_at=shipment.created_at,
-        items=items
-    )
-
-
-@router.put("/{shipment_id}/check")
-def check_shipment(shipment_id: int, items: List[dict], db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    shipment = db.query(Shipment).filter(Shipment.id == shipment_id).first()
-    if not shipment:
-        raise HTTPException(status_code=404, detail="Gönderim bulunamadı")
-    
-    # Authorization: Only admin or shipment creator can check
-    if current_user.role != "admin" and shipment.created_by != current_user.id:
-        raise HTTPException(status_code=403, detail="Bu gönderimi kontrol etme yetkisi yok")
-
-    for item_data in items:
-        item = db.query(ShipmentItem).filter(ShipmentItem.id == item_data["id"]).first()
-        if item:
-            item.actual_quantity = item_data.get("actual_quantity", 0)
-            if item.actual_quantity == item.expected_quantity:
-                item.status = "complete"
-            elif item.actual_quantity < item.expected_quantity:
-                item.status = "missing"
+            if data.shipment_type == "Giriş":
+                product.current_stock += qty_to_use
+                action_type = "add"
             else:
-                item.status = "extra"
+                product.current_stock -= qty_to_use
+                action_type = "remove"
 
-    shipment.status = "checked"
-    from datetime import datetime
-    shipment.check_date = datetime.utcnow()
+            # Stok log kaydı
+            log = StockLog(
+                product_id=product.id,
+                user_id=current_user.id,
+                action=action_type,
+                quantity_change=qty_to_use,
+                previous_value=str(old_stock),
+                new_value=str(product.current_stock),
+                note=f"Gönderim: {new_shipment.name}"
+            )
+            db.add(log)
+
     db.commit()
 
-    return {"message": "Gönderim kontrol edildi"}
+    # İlişkileriyle birlikte tekrar çek
+    shipment = (
+        db.query(Shipment)
+        .options(joinedload(Shipment.items).joinedload(ShipmentItem.product))
+        .filter(Shipment.id == new_shipment.id)
+        .first()
+    )
+    return build_shipment_response(shipment)
 
 
 @router.delete("/{shipment_id}")
-def delete_shipment(shipment_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_admin_user)):
+def delete_shipment(shipment_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     shipment = db.query(Shipment).filter(Shipment.id == shipment_id).first()
     if not shipment:
         raise HTTPException(status_code=404, detail="Gönderim bulunamadı")

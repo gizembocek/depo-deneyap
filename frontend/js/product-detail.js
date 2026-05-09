@@ -63,7 +63,7 @@ async function showProductDetail(id) {
                 <div class="space-y-2 max-h-40 overflow-y-auto">${logs.slice(0, 10).map(l => `
                     <div class="flex items-center justify-between text-xs py-1.5 border-b border-slate-700/30">
                         <div class="flex items-center gap-2"><span class="text-gray-400">${l.user_name || 'Sistem'}</span><span class="text-gray-600">•</span><span class="text-gray-500">${l.action}</span></div>
-                        <div class="flex items-center gap-2"><span class="text-gray-400">${l.previous_value || ''} → ${l.new_value || ''}</span><span class="text-gray-600">${new Date(l.created_at).toLocaleDateString('tr-TR')}</span></div>
+                        <div class="flex items-center gap-2"><span class="text-gray-400">${l.previous_value || ''} → ${l.new_value || ''}</span><span class="text-gray-600">${new Date(l.created_at).toLocaleString('tr-TR')}</span></div>
                     </div>`).join('')}
                 </div>
             </div>` : ''}
@@ -127,9 +127,12 @@ async function showProductForm(editId = null) {
         </div>
         <div><label class="block text-xs text-gray-400 mb-1.5">Açıklama</label>
             <textarea name="description" rows="2" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-deneyap-blue-500">${product?.description || ''}</textarea></div>
-        <div><label class="block text-xs text-gray-400 mb-1.5">Görsel URL</label>
-            <input type="text" name="image_url" value="${product?.image_url || ''}" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-deneyap-blue-500" placeholder="/assets/images/image1.png veya URL">
-            <input type="file" id="imageUpload" accept="image/*" onchange="handleImageUpload(this)" class="mt-2 text-xs text-gray-400"></div>
+        <div>
+            <label class="block text-xs text-gray-400 mb-1.5"><span class="material-icons-outlined text-[14px] align-middle mr-1">photo_camera</span>Ürün Fotoğrafı</label>
+            ${product?.image_url ? `<div id="imgPreviewWrap" class="mb-2 w-full h-32 bg-slate-800 rounded-xl overflow-hidden flex items-center justify-center border border-slate-700"><img id="imgPreview" src="${product.image_url}" class="h-full w-full object-contain p-1" onerror="this.parentElement.style.display='none'"></div>` : `<div id="imgPreviewWrap" class="hidden mb-2 w-full h-32 bg-slate-800 rounded-xl overflow-hidden flex items-center justify-center border border-slate-700"><img id="imgPreview" class="h-full w-full object-contain p-1"></div>`}
+            <input type="file" id="imageUpload" accept="image/*" onchange="handleImageUpload(this)" class="w-full text-xs text-gray-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:bg-deneyap-blue-500/20 file:text-deneyap-blue-400 hover:file:bg-deneyap-blue-500/30 cursor-pointer bg-slate-800 border border-slate-700 rounded-xl px-3 py-2">
+            <input type="hidden" name="image_url" id="imageUrlHidden" value="${product?.image_url || ''}">
+        </div>
         <div class="grid grid-cols-3 gap-4">
             <div><label class="block text-xs text-gray-400 mb-1.5">Stok</label><input type="number" name="current_stock" value="${product?.current_stock ?? 0}" min="0" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-deneyap-blue-500"></div>
             <div><label class="block text-xs text-gray-400 mb-1.5">Kritik Stok</label><input type="number" name="critical_stock" value="${product?.critical_stock ?? 5}" min="0" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-deneyap-blue-500"></div>
@@ -216,7 +219,13 @@ async function handleImageUpload(input) {
     if (!input.files.length) return;
     try {
         const result = await api.uploadImage(input.files[0]);
-        document.querySelector('[name="image_url"]').value = result.url;
+        // Gizli hidden input'a URL'i yaz
+        const hiddenInput = document.getElementById('imageUrlHidden');
+        if (hiddenInput) hiddenInput.value = result.url;
+        // Önizleme göster
+        const wrap = document.getElementById('imgPreviewWrap');
+        const img = document.getElementById('imgPreview');
+        if (wrap && img) { img.src = result.url; wrap.classList.remove('hidden'); wrap.style.display = 'flex'; }
         showToast('Görsel yüklendi');
     } catch (err) { showToast(err.message, 'error'); }
 }

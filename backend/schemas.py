@@ -1,13 +1,12 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 from datetime import datetime
-
+from enum import Enum
 
 # --- Auth Schemas ---
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
-
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -15,12 +14,10 @@ class UserCreate(BaseModel):
     password: str
     role: str = "user"
 
-
 class UserUpdate(BaseModel):
     full_name: Optional[str] = None
     role: Optional[str] = None
     is_active: Optional[bool] = None
-
 
 class UserResponse(BaseModel):
     id: int
@@ -34,12 +31,10 @@ class UserResponse(BaseModel):
     class Config:
         from_attributes = True
 
-
 class Token(BaseModel):
     access_token: str
     token_type: str
     user: UserResponse
-
 
 # --- Warehouse Schemas ---
 class WarehouseCreate(BaseModel):
@@ -47,12 +42,10 @@ class WarehouseCreate(BaseModel):
     description: Optional[str] = None
     location: Optional[str] = None
 
-
 class WarehouseUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     location: Optional[str] = None
-
 
 class WarehouseResponse(BaseModel):
     id: int
@@ -64,12 +57,10 @@ class WarehouseResponse(BaseModel):
     class Config:
         from_attributes = True
 
-
 # --- Cabinet/Shelf/Compartment Schemas ---
 class CabinetCreate(BaseModel):
     name: str
     warehouse_id: int
-
 
 class CabinetResponse(BaseModel):
     id: int
@@ -79,11 +70,9 @@ class CabinetResponse(BaseModel):
     class Config:
         from_attributes = True
 
-
 class ShelfCreate(BaseModel):
     name: str
     cabinet_id: int
-
 
 class ShelfResponse(BaseModel):
     id: int
@@ -93,11 +82,9 @@ class ShelfResponse(BaseModel):
     class Config:
         from_attributes = True
 
-
 class CompartmentCreate(BaseModel):
     name: str
     shelf_id: int
-
 
 class CompartmentResponse(BaseModel):
     id: int
@@ -107,11 +94,9 @@ class CompartmentResponse(BaseModel):
     class Config:
         from_attributes = True
 
-
 # --- Course Schemas ---
 class CourseCreate(BaseModel):
     name: str
-
 
 class CourseResponse(BaseModel):
     id: int
@@ -119,7 +104,6 @@ class CourseResponse(BaseModel):
 
     class Config:
         from_attributes = True
-
 
 # --- Product Schemas ---
 class ProductCreate(BaseModel):
@@ -137,7 +121,6 @@ class ProductCreate(BaseModel):
     compartment_id: Optional[int] = None
     course_ids: List[int] = []
 
-
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
@@ -152,7 +135,6 @@ class ProductUpdate(BaseModel):
     shelf_id: Optional[int] = None
     compartment_id: Optional[int] = None
     course_ids: Optional[List[int]] = None
-
 
 class ProductResponse(BaseModel):
     id: int
@@ -179,13 +161,11 @@ class ProductResponse(BaseModel):
     class Config:
         from_attributes = True
 
-
 # --- Stock Log Schemas ---
 class StockLogCreate(BaseModel):
     action: str
     quantity_change: int = 0
     note: Optional[str] = None
-
 
 class StockLogResponse(BaseModel):
     id: int
@@ -203,20 +183,28 @@ class StockLogResponse(BaseModel):
     class Config:
         from_attributes = True
 
+# --- Shipment Schemas (MODEL UYUMLU) ---
 
-# --- Shipment Schemas ---
+class ShipmentTypeSchema(str, Enum):
+    GIRIS = "Giriş"
+    CIKIS = "Çıkış"
+    
 class ShipmentItemCreate(BaseModel):
     product_id: int
-    expected_quantity: int = 0
-
+    expected_quantity: int = 1
+    actual_quantity: Optional[int] = None
 
 class ShipmentCreate(BaseModel):
     name: str
+    shipment_type: ShipmentTypeSchema = ShipmentTypeSchema.CIKIS
+    outgoing_reason: Optional[str] = None
+    arrival_image_url: Optional[str] = None
+    visual_image_url: Optional[str] = None
+    invoice_image_url: Optional[str] = None
     shipment_date: Optional[datetime] = None
     check_date: Optional[datetime] = None
     notes: Optional[str] = None
     items: List[ShipmentItemCreate] = []
-
 
 class ShipmentItemResponse(BaseModel):
     id: int
@@ -229,10 +217,14 @@ class ShipmentItemResponse(BaseModel):
     class Config:
         from_attributes = True
 
-
 class ShipmentResponse(BaseModel):
     id: int
     name: str
+    shipment_type: ShipmentTypeSchema
+    outgoing_reason: Optional[str] = None
+    arrival_image_url: Optional[str] = None
+    visual_image_url: Optional[str] = None
+    invoice_image_url: Optional[str] = None
     shipment_date: Optional[datetime] = None
     check_date: Optional[datetime] = None
     status: str
@@ -243,7 +235,6 @@ class ShipmentResponse(BaseModel):
 
     class Config:
         from_attributes = True
-
 
 # --- Stock Update ---
 class StockUpdate(BaseModel):

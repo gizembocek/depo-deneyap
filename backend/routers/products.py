@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query, Form
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_, func
 from database import get_db
+from datetime import timezone
 from models import Product, Course, Warehouse, Cabinet, Shelf, Compartment, StockLog, product_courses
 from schemas import ProductCreate, ProductUpdate, ProductResponse, CourseResponse, StockUpdate, StockLogCreate
 from auth import get_current_user, get_admin_user
@@ -103,7 +104,7 @@ def list_products(
         query = query.filter(Product.current_stock <= Product.critical_stock)
 
     total = query.count()
-    products = query.offset((page - 1) * per_page).limit(per_page).all()
+    products = query.order_by(Product.id.desc()).offset((page - 1) * per_page).limit(per_page).all()
 
     # Deduplicate products (joinedload may cause duplicates)
     seen = set()
@@ -297,8 +298,126 @@ def update_product(product_id: int, product_data: ProductUpdate, db: Session = D
 
     db.commit()
     db.refresh(product)
-
     return product_to_response(product)
+
+@router.post("/import/excel")
+async def import_excel(
+    file: UploadFile = File(...),
+    warehouse_id: Optional[int] = Form(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_admin_user)
+):
+    import openpyxl
+    import io
+    
+    if not file.filename.endswith(('.xlsx', '.xls')):
+        raise HTTPException(status_code=400, detail="Lütfen geçerli bir Excel dosyası yükleyin (.xlsx veya .xls)")
+        
+    contents = await file.read()
+    
+    try:
+        wb = openpyxl.load_workbook(filename=io.BytesIO(contents), data_only=True)
+        ws = wb.active
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Excel dosyası okunamadı: {str(e)}")
+        
+    # Tüm sayfaları kontrol et ve doğru başlığı bul
+    ws = None
+    header_row = None
+    header_row_idx = 1
+    name_idx = -1
+    
+    for sheet in wb.worksheets:
+        for idx, row in enumerate(sheet.iter_rows(min_row=1, max_row=15, values_only=True), 1):
+            if not row:
+                continue
+            headers = [str(h).lower().strip() if h else "" for h in row]
+            for i, h in enumerate(headers):
+                if h in ["malzeme adı", "ürün adı", "ürün", "malzeme", "ad"] or "malzeme adı" in h or "ürün adı" in h:
+                    name_idx = i
+                    header_row = headers
+                    header_row_idx = idx
+                    ws = sheet
+                    break
+            if header_row:
+                break
+        if ws:
+            break
+            
+    if not ws or not header_row or name_idx == -1:
+        raise HTTPException(status_code=400, detail="Excel dosyasındaki hiçbir sayfada 'Malzeme Adı' veya 'Ürün Adı' içeren bir başlık satırı bulunamadı.")
+        
+    added_count = 0
+    skipped_count = 0
+    
+    for row in ws.iter_rows(min_row=header_row_idx + 1, values_only=True):
+        if not row or name_idx >= len(row) or not row[name_idx]:
+            continue
+            
+        name = str(row[name_idx]).strip()
+        if not name or name.lower() == "none" or name.lower() == "nan":
+            continue
+        
+        # Kopya kontrolü
+        existing = db.query(Product).filter(
+            func.lower(Product.name) == name.lower(),
+            Product.warehouse_id == warehouse_id
+        ).first()
+        
+        if existing:
+            skipped_count += 1
+            continue
+            
+        category = "Genel / Dayanıklı Malzeme"
+        description = ""
+        current_stock = 0
+        critical_stock = 5
+        ideal_stock = 100
+        status = "Çalışan"
+        
+        # Diğer sütunları eşleştir
+        for i, h in enumerate(headers):
+            if i >= len(row) or row[i] is None:
+                continue
+            val = row[i]
+            if "kategori" in h or "category" in h:
+                category = str(val).strip()
+            elif "açıklama" in h or "desc" in h:
+                description = str(val).strip()
+            elif "mevcut" in h or ("stok" in h and "kritik" not in h and "ideal" not in h):
+                try: current_stock = int(float(val))
+                except: pass
+            elif "kritik" in h:
+                try: critical_stock = int(float(val))
+                except: pass
+            elif "ideal" in h:
+                try: ideal_stock = int(float(val))
+                except: pass
+            elif "durum" in h or "status" in h:
+                status = str(val).strip()
+                
+        product = Product(
+            name=name,
+            description=description,
+            category=category,
+            current_stock=current_stock,
+            critical_stock=critical_stock,
+            ideal_stock=ideal_stock,
+            status=status,
+            warehouse_id=warehouse_id
+        )
+        
+        db.add(product)
+        added_count += 1
+        
+    if added_count > 0:
+        db.commit()
+        
+    return {
+        "message": "İçe aktarma tamamlandı.",
+        "added": added_count,
+        "skipped": skipped_count
+    }
 
 
 @router.delete("/{product_id}")
@@ -371,7 +490,7 @@ def get_product_logs(product_id: int, db: Session = Depends(get_db), current_use
             "previous_value": log.previous_value,
             "new_value": log.new_value,
             "note": log.note,
-            "created_at": log.created_at.isoformat(),
+            "created_at": log.created_at.replace(tzinfo=timezone.utc).isoformat() if log.created_at else None,
             "user_name": user_name
         })
 

@@ -117,6 +117,12 @@ class ApiClient {
         });
     }
 
+    async deleteUser(userId) {
+        return this.request(`/api/auth/users/${userId}`, {
+            method: 'DELETE'
+        });
+    }
+
     async grantWarehouseAccess(userId, warehouseId) {
         return this.request(`/api/auth/users/${userId}/warehouses/${warehouseId}`, {
             method: 'POST'
@@ -187,6 +193,29 @@ class ApiClient {
 
     async getProductLogs(productId) {
         return this.request(`/api/products/${productId}/logs`);
+    }
+
+    async importExcelProducts(file, warehouseId) {
+        const formData = new FormData();
+        formData.append('file', file);
+        if (warehouseId) formData.append('warehouse_id', warehouseId);
+        
+        const headers = {};
+        if (this.token) {
+            headers['Authorization'] = `Bearer ${this.token}`;
+        }
+
+        const response = await fetch(`${API_BASE}/api/products/import/excel`, {
+            method: 'POST',
+            headers,
+            body: formData
+        });
+
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ detail: 'Bir hata oluştu' }));
+            throw new Error(error.detail || 'Bir hata oluştu');
+        }
+        return await response.json();
     }
 
     async uploadImage(file) {

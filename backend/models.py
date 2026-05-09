@@ -26,6 +26,12 @@ class ProductStatus(str, enum.Enum):
     DEMIRBAS_DUSULECEK = "Demirbaştan düşülecek"
     KIRIK_KUTUSUNDA = "Kırık ürün kutusunda"
 
+# --- YENİ EKLENEN SINIF BURAYA GELİYOR ---
+class ShipmentType(str, enum.Enum):
+    GIRIS = "Giriş"
+    CIKIS = "Çıkış"
+
+
 
 # --- Association Tables ---
 product_courses = Table(
@@ -171,6 +177,10 @@ class Shipment(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False)
+    shipment_type = Column(String(50), default=ShipmentType.CIKIS.value)
+    reason = Column(String(255), nullable=True)
+    invoice_image_url = Column(String(500), nullable=True)
+    cargo_image_url = Column(String(500), nullable=True)
     shipment_date = Column(DateTime, nullable=True)
     check_date = Column(DateTime, nullable=True)
     status = Column(String(50), default="pending")  # pending, shipped, checked
@@ -181,6 +191,9 @@ class Shipment(Base):
 
     items = relationship("ShipmentItem", back_populates="shipment", cascade="all, delete-orphan")
     creator = relationship("User")
+    outgoing_reason = Column(String(255), nullable=True)
+    arrival_image_url = Column(String(500), nullable=True)
+    visual_image_url = Column(String(500), nullable=True)
 
 
 class ShipmentItem(Base):
@@ -195,3 +208,4 @@ class ShipmentItem(Base):
 
     shipment = relationship("Shipment", back_populates="items")
     product = relationship("Product")
+    

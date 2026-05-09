@@ -145,6 +145,18 @@ def grant_warehouse_access(user_id: int, warehouse_id: int, db: Session = Depend
     return {"message": "Depo erişimi verildi"}
 
 
+@router.delete("/users/{user_id}")
+def delete_user(user_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_admin_user)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+    if user.id == current_user.id:
+        raise HTTPException(status_code=400, detail="Kendi hesabınızı silemezsiniz")
+    db.delete(user)
+    db.commit()
+    return {"message": "Kullanıcı silindi"}
+
+
 @router.delete("/users/{user_id}/warehouses/{warehouse_id}")
 def revoke_warehouse_access(user_id: int, warehouse_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_admin_user)):
     from models import Warehouse

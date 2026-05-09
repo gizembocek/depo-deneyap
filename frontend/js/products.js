@@ -7,9 +7,14 @@ async function renderProductsPage() {
     <div class="animate-fade-in">
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <h1 class="text-2xl font-bold text-white">Ürün Yönetimi</h1>
-            <button id="addProductBtn" onclick="showProductForm()" class="admin-only flex items-center gap-2 bg-deneyap-blue-500 hover:bg-deneyap-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-all">
-                <span class="material-icons-outlined text-lg">add</span>Yeni Ürün Ekle
-            </button>
+            <div class="flex gap-2">
+                <button onclick="showExcelImportModal()" class="admin-only flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-all">
+                    <span class="material-icons-outlined text-lg">upload_file</span>Excel İle Ekle
+                </button>
+                <button id="addProductBtn" onclick="showProductForm()" class="admin-only flex items-center gap-2 bg-deneyap-blue-500 hover:bg-deneyap-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-all">
+                    <span class="material-icons-outlined text-lg">add</span>Yeni Ürün Ekle
+                </button>
+            </div>
         </div>
         <!-- Filters -->
         <div class="glass rounded-2xl p-4 mb-6">
@@ -109,4 +114,68 @@ async function quickStock(productId, action) {
         showToast(`Stok güncellendi: ${result.current_stock}`, result.is_critical ? 'warning' : 'success');
         loadProducts();
     } catch (err) { showToast(err.message, 'error'); }
+}
+
+// ==================== EXCEL IMPORT ====================
+function showExcelImportModal() {
+    const warehouseOptions = allWarehouses.map(w => `<option value="${w.id}">${w.name}</option>`).join('');
+    
+    const formContent = `
+    <div class="space-y-4">
+        <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+            <p class="text-sm text-gray-300 mb-2 font-medium">Nasıl Yüklenir?</p>
+            <ul class="text-xs text-gray-400 space-y-1 list-disc pl-4">
+                <li>İlk satır mutlaka <b>başlıkları</b> içermelidir (Ürün Adı, Kategori, Stok vb.).</li>
+                <li>Zorunlu olan tek sütun <b>"Ürün Adı"</b> sütunudur.</li>
+                <li>Mevcut olan ürünler otomatik olarak atlanır (kopyalanmaz).</li>
+            </ul>
+        </div>
+        
+        <form id="excelImportForm" onsubmit="event.preventDefault(); submitExcelImport();">
+            <div class="mb-4">
+                <label class="block text-xs text-gray-400 mb-1.5"><span class="material-icons-outlined text-[14px] align-middle mr-1">warehouse</span>Hangi Depoya Eklenecek?</label>
+                <select name="warehouse_id" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-deneyap-blue-500">
+                    <option value="">Depo Seçilmedi (Genel Ürün)</option>
+                    ${warehouseOptions}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-400 mb-1.5"><span class="material-icons-outlined text-[14px] align-middle mr-1">description</span>Excel Dosyası (.xlsx, .xls)</label>
+                <input type="file" id="excelFile" accept=".xlsx, .xls" required class="w-full text-sm text-gray-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-deneyap-blue-500/20 file:text-deneyap-blue-400 hover:file:bg-deneyap-blue-500/30 cursor-pointer bg-slate-800 border border-slate-700 rounded-xl px-3 py-2">
+            </div>
+        </form>
+    </div>`;
+
+    const footer = `
+        <button onclick="closeModal()" class="bg-slate-700 hover:bg-slate-600 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-all">İptal</button>
+        <button onclick="submitExcelImport()" class="bg-green-500 hover:bg-green-600 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center gap-2"><span class="material-icons-outlined text-lg">upload</span>Yükle ve Aktar</button>`;
+
+    showModal("Excel'den Toplu Ürün Ekle", formContent, footer);
+}
+
+async function submitExcelImport() {
+    const fileInput = document.getElementById('excelFile');
+    if (!fileInput.files.length) {
+        showToast('Lütfen bir Excel dosyası seçin', 'warning');
+        return;
+    }
+    
+    const warehouseId = document.querySelector('#excelImportForm select[name="warehouse_id"]').value;
+    const btn = document.querySelector('button[onclick="submitExcelImport()"]');
+    const originalText = btn.innerHTML;
+    
+    btn.disabled = true; 
+    btn.innerHTML = '<div class="spinner border-t-white w-4 h-4 mr-2 inline-block"></div>Yükleniyor...';
+    
+    try {
+        const result = await api.importExcelProducts(fileInput.files[0], warehouseId || null);
+        showToast(`${result.added} yeni ürün eklendi, ${result.skipped} ürün atlandı.`, 'success');
+        closeModal();
+        if(typeof loadInitialData === 'function') await loadInitialData();
+        loadProducts();
+    } catch (err) {
+        showToast(err.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
 }
