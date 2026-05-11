@@ -1,5 +1,5 @@
 // ==================== PRODUCTS PAGE ====================
-let productFilters = { search: '', category: '', status: '', warehouse_id: '', low_stock: false, page: 1 };
+let productFilters = { search: '', category: '', status: '', warehouse_id: '', course_id: '', low_stock: false, page: 1 };
 
 async function renderProductsPage() {
     const content = document.getElementById('pageContent');
@@ -7,7 +7,10 @@ async function renderProductsPage() {
     <div class="animate-fade-in">
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <h1 class="text-2xl font-bold text-white">Ürün Yönetimi</h1>
-            <div class="flex gap-2">
+            <div class="flex gap-2 flex-wrap">
+                <button onclick="confirmDeleteAllProducts()" class="admin-only flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-all">
+                    <span class="material-icons-outlined text-lg">delete_sweep</span>Tüm Ürünleri Sil
+                </button>
                 <button onclick="showExcelImportModal()" class="admin-only flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-all">
                     <span class="material-icons-outlined text-lg">upload_file</span>Excel İle Ekle
                 </button>
@@ -53,7 +56,7 @@ async function renderProductsPage() {
 }
 
 function resetFilters() {
-    productFilters = { search: '', category: '', status: '', warehouse_id: '', low_stock: false, page: 1 };
+    productFilters = { search: '', category: '', status: '', warehouse_id: '', course_id: '', low_stock: false, page: 1 };
     document.getElementById('filterCategory').value = '';
     document.getElementById('filterStatus').value = '';
     document.getElementById('filterWarehouse').value = '';
@@ -66,6 +69,7 @@ async function loadProducts(extraParams = {}) {
     if (!grid) return;
     grid.innerHTML = '<div class="flex justify-center py-10"><div class="spinner"></div></div>';
     const params = { ...productFilters, ...extraParams, per_page: 50 };
+    if (!params.course_id) delete params.course_id;
     if (extraParams.search !== undefined) productFilters.search = extraParams.search;
     try {
         const products = await api.getProducts(params);
@@ -169,7 +173,8 @@ async function submitExcelImport() {
     
     try {
         const result = await api.importExcelProducts(fileInput.files[0], warehouseId || null);
-        showToast(`${result.added} yeni ürün eklendi, ${result.skipped} ürün atlandı.`, 'success');
+        const sheetsInfo = result.sheets ? ' | Sayfalar: ' + result.sheets.join(', ') : '';
+        showToast(`${result.added} yeni ürün eklendi, ${result.skipped} ürün atlandı.${sheetsInfo}`, 'success');
         closeModal();
         if(typeof loadInitialData === 'function') await loadInitialData();
         loadProducts();
@@ -177,5 +182,62 @@ async function submitExcelImport() {
         showToast(err.message, 'error');
         btn.disabled = false;
         btn.innerHTML = originalText;
+    }
+}
+
+// ==================== DELETE ALL PRODUCTS ====================
+function confirmDeleteAllProducts() {
+    const formContent = `
+    <div class="space-y-4">
+        <div class="bg-red-500/10 border border-red-500/30 p-4 rounded-xl">
+            <div class="flex items-center gap-3 mb-3">
+                <span class="material-icons-outlined text-red-400 text-3xl">warning</span>
+                <div>
+                    <p class="text-red-400 font-bold text-lg">Dikkat! Bu işlem geri alınamaz!</p>
+                    <p class="text-gray-400 text-sm mt-1">Tüm ürünler, stok logları ve ders ilişkileri kalıcı olarak silinecektir.</p>
+                </div>
+            </div>
+        </div>
+        <div>
+            <label class="block text-xs text-gray-400 mb-1.5">Onaylamak için <b class="text-red-400">SİL</b> yazın:</label>
+            <input type="text" id="deleteConfirmInput" placeholder="SİL" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-red-500">
+        </div>
+    </div>`;
+
+    const footer = `
+        <button onclick="closeModal()" class="bg-slate-700 hover:bg-slate-600 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-all">İptal</button>
+        <button onclick="executeDeleteAllProducts()" id="deleteAllBtn" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center gap-2">
+            <span class="material-icons-outlined text-lg">delete_forever</span>Tümünü Sil
+        </button>`;
+
+    showModal('Tüm Ürünleri Sil', formContent, footer);
+}
+
+async function executeDeleteAllProducts() {
+    const confirmInput = document.getElementById('deleteConfirmInput');
+    if (!confirmInput || confirmInput.value.trim() !== 'SİL') {
+        showToast('Lütfen onaylamak için "SİL" yazın', 'warning');
+        confirmInput?.focus();
+        return;
+    }
+
+    const btn = document.getElementById('deleteAllBtn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<div class="spinner border-t-white w-4 h-4 mr-2 inline-block"></div>Siliniyor...';
+    }
+
+    try {
+        const result = await api.deleteAllProducts();
+        showToast(result.message, 'success');
+        closeModal();
+        if(typeof loadInitialData === 'function') await loadInitialData();
+        loadProducts();
+    } catch (err) {
+        showToast(err.message, 'error');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-icons-outlined text-lg">delete_forever</span>Tümünü Sil';
+        }
     }
 }

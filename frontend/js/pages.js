@@ -109,7 +109,7 @@ async function renderCoursesPage() {
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 ${courses.length === 0 ? '<div class="col-span-full text-center py-16 text-gray-500">Henüz ders eklenmemiş</div>' : courses.map(c => `
-                <div class="glass rounded-2xl p-5 flex items-center justify-between product-card">
+                <div class="glass rounded-2xl p-5 flex items-center justify-between product-card cursor-pointer hover:bg-slate-800/50" onclick="navigateToProductsWithCourse(${c.id}, '${c.name.replace(/'/g, "\\'")}')">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-deneyap-blue-500/20 flex items-center justify-center text-deneyap-blue-400">
                             <span class="material-icons-outlined">school</span>
@@ -117,7 +117,7 @@ async function renderCoursesPage() {
                         <span class="font-medium text-white">${c.name}</span>
                     </div>
                     ${api.isAdmin() ? `
-                    <button onclick="deleteCourse(${c.id})" class="text-gray-500 hover:text-red-400 p-2 transition-colors">
+                    <button onclick="event.stopPropagation(); deleteCourse(${c.id})" class="text-gray-500 hover:text-red-400 p-2 transition-colors relative z-10">
                         <span class="material-icons-outlined">delete</span>
                     </button>` : ''}
                 </div>`).join('')}
@@ -156,6 +156,17 @@ async function deleteCourse(id) {
         showToast('Ders silindi');
         renderCoursesPage();
     } catch (err) { showToast(err.message, 'error'); }
+}
+
+function navigateToProductsWithCourse(courseId, courseName) {
+    productFilters.course_id = courseId;
+    productFilters.page = 1;
+    navigateTo('products');
+    setTimeout(() => {
+        const searchInput = document.getElementById('globalSearch');
+        if (searchInput) searchInput.value = 'Ders Filtresi Aktif';
+        showToast(courseName + ' dersine ait ürünler listeleniyor', 'info');
+    }, 100);
 }
 
 // ==================== SHIPMENTS PAGE ====================

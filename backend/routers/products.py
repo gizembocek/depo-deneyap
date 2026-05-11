@@ -307,8 +307,14 @@ async def import_excel(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_admin_user)
 ):
+    """
+    Deneyap Atölyesi envanter Excel dosyasından ürün aktarır.
+    TÜM sayfaları tarar, 'Malzeme Adı' + 'Birim' sütunlarını birlikte arar.
+    DURUM gibi değerlendirme sayfalarını otomatik atlar.
+    """
     import openpyxl
     import io
+    import re
     
     if not file.filename.endswith(('.xlsx', '.xls')):
         raise HTTPException(status_code=400, detail="Lütfen geçerli bir Excel dosyası yükleyin (.xlsx veya .xls)")
@@ -317,106 +323,194 @@ async def import_excel(
     
     try:
         wb = openpyxl.load_workbook(filename=io.BytesIO(contents), data_only=True)
-        ws = wb.active
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Excel dosyası okunamadı: {str(e)}")
-        
-    # Tüm sayfaları kontrol et ve doğru başlığı bul
-    ws = None
-    header_row = None
-    header_row_idx = 1
-    name_idx = -1
     
+    # --- Yardımcı: Birim alanından stok miktarını çıkar ("6 Adet" -> 6, "Adet" -> 0) ---
+    def parse_stock_from_birim(birim_val):
+        if birim_val is None:
+            return 0
+        text = str(birim_val).strip().lower()
+        match = re.match(r'(\d+)', text)
+        if match:
+            return int(match.group(1))
+        return 0
+    
+    # --- Yardımcı: Durum alanını normalize et ---
+    def parse_status(val):
+        if val is None:
+            return "Çalışan"
+        text = str(val).strip().lower()
+        if "yok" in text or "bozuk" in text or "tamamen" in text:
+            return "Bozuk / Kırık"
+        if "kısmen" in text or "tadilat" in text or "bakım" in text:
+            return "Garantide"
+        if "çalış" in text or "tam" in text:
+            return "Çalışan"
+        return "Çalışan"
+    
+    # --- Kategori eşleştirme (sayfa adına göre) ---
+    def sheet_name_to_category(sheet_name):
+        name_lower = sheet_name.lower()
+        if "demirbaş" in name_lower or "demirbas" in name_lower:
+            return "Genel / Dayanıklı Malzeme"
+        elif "elektronik" in name_lower or "programlama" in name_lower:
+            return "Elektronik Bileşen"
+        elif "tasarım" in name_lower or "üretim" in name_lower or "sarf" in name_lower:
+            return "Sarf Malzemesi"
+        elif "robotik" in name_lower or "kodlama" in name_lower:
+            return "Elektronik Bileşen"
+        return "Genel / Dayanıklı Malzeme"
+    
+    added_count = 0
+    skipped_count = 0
+    imported_sheets = []
+    
+    # --- TÜM sayfaları tara ---
     for sheet in wb.worksheets:
-        for idx, row in enumerate(sheet.iter_rows(min_row=1, max_row=15, values_only=True), 1):
+        sheet_name = sheet.title
+        
+        # Başlık satırını bul: "Malzeme Adı" VE "Birim" sütunlarını birlikte ara
+        name_col = -1
+        birim_col = -1
+        status_col = -1
+        header_row_idx = -1
+        found_headers = None
+        
+        for idx, row in enumerate(sheet.iter_rows(min_row=1, max_row=20, values_only=True), 1):
             if not row:
                 continue
             headers = [str(h).lower().strip() if h else "" for h in row]
+            
+            temp_name_col = -1
+            temp_birim_col = -1
+            temp_status_col = -1
+            
             for i, h in enumerate(headers):
-                if h in ["malzeme adı", "ürün adı", "ürün", "malzeme", "ad"] or "malzeme adı" in h or "ürün adı" in h:
-                    name_idx = i
-                    header_row = headers
-                    header_row_idx = idx
-                    ws = sheet
-                    break
-            if header_row:
+                # Malzeme Adı / Ürün Adı sütunu
+                if h in ["malzeme adı", "ürün adı", "malzeme adi", "ürün adi"]:
+                    temp_name_col = i
+                elif "malzeme adı" in h or "ürün adı" in h:
+                    temp_name_col = i
+                # Birim sütunu (ürün sayfası olduğunu doğrular)
+                elif h == "birim" or "birim" in h:
+                    temp_birim_col = i
+                # Durum/Çalışır sütunu
+                elif "çalış" in h or "tam" in h:
+                    temp_status_col = i
+            
+            # Her iki sütun da bulunmuşsa bu bir ürün sayfasıdır
+            if temp_name_col >= 0 and temp_birim_col >= 0:
+                name_col = temp_name_col
+                birim_col = temp_birim_col
+                status_col = temp_status_col
+                header_row_idx = idx
+                found_headers = headers
                 break
-        if ws:
-            break
-            
-    if not ws or not header_row or name_idx == -1:
-        raise HTTPException(status_code=400, detail="Excel dosyasındaki hiçbir sayfada 'Malzeme Adı' veya 'Ürün Adı' içeren bir başlık satırı bulunamadı.")
         
-    added_count = 0
-    skipped_count = 0
-    
-    for row in ws.iter_rows(min_row=header_row_idx + 1, values_only=True):
-        if not row or name_idx >= len(row) or not row[name_idx]:
-            continue
-            
-        name = str(row[name_idx]).strip()
-        if not name or name.lower() == "none" or name.lower() == "nan":
+        # Bu sayfa ürün sayfası değilse (Malzeme Adı+Birim yok) → atla
+        if name_col < 0 or birim_col < 0 or header_row_idx < 0:
             continue
         
-        # Kopya kontrolü
-        existing = db.query(Product).filter(
-            func.lower(Product.name) == name.lower(),
-            Product.warehouse_id == warehouse_id
-        ).first()
+        # Sayfa adından kategori belirle
+        category = sheet_name_to_category(sheet_name)
+        sheet_added = 0
         
-        if existing:
-            skipped_count += 1
-            continue
-            
-        category = "Genel / Dayanıklı Malzeme"
-        description = ""
-        current_stock = 0
-        critical_stock = 5
-        ideal_stock = 100
-        status = "Çalışan"
+        # Ders tablosunda bu sayfa adıyla eşleşen dersi bul veya oluştur
+        course = db.query(Course).filter(Course.name == sheet_name).first()
+        if not course:
+            course = Course(name=sheet_name)
+            db.add(course)
+            db.commit()
+            db.refresh(course)
         
-        # Diğer sütunları eşleştir
-        for i, h in enumerate(headers):
-            if i >= len(row) or row[i] is None:
+        # Veri satırlarını oku
+        for row in sheet.iter_rows(min_row=header_row_idx + 1, values_only=True):
+            if not row or name_col >= len(row) or not row[name_col]:
                 continue
-            val = row[i]
-            if "kategori" in h or "category" in h:
-                category = str(val).strip()
-            elif "açıklama" in h or "desc" in h:
-                description = str(val).strip()
-            elif "mevcut" in h or ("stok" in h and "kritik" not in h and "ideal" not in h):
-                try: current_stock = int(float(val))
-                except: pass
-            elif "kritik" in h:
-                try: critical_stock = int(float(val))
-                except: pass
-            elif "ideal" in h:
-                try: ideal_stock = int(float(val))
-                except: pass
-            elif "durum" in h or "status" in h:
-                status = str(val).strip()
-                
-        product = Product(
-            name=name,
-            description=description,
-            category=category,
-            current_stock=current_stock,
-            critical_stock=critical_stock,
-            ideal_stock=ideal_stock,
-            status=status,
-            warehouse_id=warehouse_id
+            
+            name = str(row[name_col]).strip()
+            
+            # Boş, None veya sayfa içi başlık satırlarını atla
+            if not name or name.lower() in ["none", "nan", "toplam", "genel toplam", ""]:
+                continue
+            
+            # Kopya kontrolü (aynı depoda aynı isim)
+            existing = db.query(Product).filter(
+                func.lower(Product.name) == name.lower(),
+                Product.warehouse_id == warehouse_id
+            ).first()
+            
+            if existing:
+                # Var olan ürünün derslerinde bu ders yoksa ekle
+                if course not in existing.courses:
+                    existing.courses.append(course)
+                    skipped_count += 1
+                else:
+                    skipped_count += 1
+                continue
+            
+            # Birim sütunundan stok miktarını çıkar
+            current_stock = parse_stock_from_birim(row[birim_col] if birim_col < len(row) else None)
+            
+            # Durum sütununu oku
+            status = "Çalışan"
+            if status_col >= 0 and status_col < len(row) and row[status_col]:
+                status = parse_status(row[status_col])
+            
+            product = Product(
+                name=name,
+                description=f"Kaynak: {sheet_name}",
+                category=category,
+                current_stock=current_stock,
+                critical_stock=5,
+                ideal_stock=max(current_stock * 2, 10) if current_stock > 0 else 100,
+                status=status,
+                warehouse_id=warehouse_id
+            )
+            
+            product.courses.append(course)
+            db.add(product)
+            added_count += 1
+            sheet_added += 1
+        
+        if sheet_added > 0:
+            imported_sheets.append(f"{sheet_name} ({sheet_added} ürün)")
+    
+    db.commit()
+    
+    if not imported_sheets:
+        raise HTTPException(
+            status_code=400, 
+            detail="Excel dosyasında uygun ürün sayfası bulunamadı. "
+                   "Ürün sayfalarında 'Malzeme Adı' ve 'Birim' sütunlarının birlikte bulunması gerekir."
         )
-        
-        db.add(product)
-        added_count += 1
-        
-    if added_count > 0:
-        db.commit()
         
     return {
         "message": "İçe aktarma tamamlandı.",
         "added": added_count,
-        "skipped": skipped_count
+        "skipped": skipped_count,
+        "sheets": imported_sheets
+    }
+
+
+@router.delete("/all", tags=["Products"])
+def delete_all_products(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_admin_user)
+):
+    """Tüm ürünleri ve ilgili stok loglarını siler. Sadece admin kullanabilir."""
+    # Önce stok loglarını sil
+    log_count = db.query(StockLog).delete()
+    # Sonra product_courses ilişki tablosunu temizle
+    db.execute(product_courses.delete())
+    # Sonra ürünleri sil
+    product_count = db.query(Product).delete()
+    db.commit()
+    return {
+        "message": f"{product_count} ürün ve {log_count} stok logu silindi.",
+        "deleted_products": product_count,
+        "deleted_logs": log_count
     }
 
 

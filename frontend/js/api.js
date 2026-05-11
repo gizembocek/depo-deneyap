@@ -184,6 +184,12 @@ class ApiClient {
         });
     }
 
+    async deleteAllProducts() {
+        return this.request('/api/products/all', {
+            method: 'DELETE'
+        });
+    }
+
     async updateStock(productId, data) {
         return this.request(`/api/products/${productId}/stock`, {
             method: 'POST',
