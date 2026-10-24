@@ -1,0 +1,42 @@
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+node_modules/
+.env
+.env.local
+.env.*.local
+*.db
+*.db-journal
+*.sqlite3
+*.xlsx
+.DS_Store
+.vscode/
+.vs/
+
+# Her kurulumun kendine ait gizli anahtarı (paylaşmayın)
+backend/.secret_key
+
+# Yedek dosyaları (kişisel veri içerir)
+deneyap_yedek_*.json
+yedek*.json
+
+# Eski / geçici dosyalar
+backend/_env_temp/
+backend/.env.zip
+
+# Güncelleme öncesi orijinal dosyalar ve taşınan eski dosyalar
+_yedek_v1_orijinal/
+_yedek_v2_onceki/
+_eski_dosyalar/
+
+# Atölyede yüklenen ürün fotoğrafları (her kurulumun kendi verisi)
+backend/uploads/
+
+# Kişisel geliştirme ortamı ayarları
+.pyre_configuration
+pyrightconfig.json
+
+# Otomatik alınan sunucu yedekleri
+backend/yedekler/
+backend/.env.yedek_*

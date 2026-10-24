@@ -1,0 +1,5 @@
+# Bulut kurulumu (Render vb., PostgreSQL). Yerel kurulum için backend/requirements.txt yeterlidir.
+-r backend/requirements.txt
+psycopg2-binary>=2.9.9
+gunicorn>=21.2.0
+supabase>=2.4.0

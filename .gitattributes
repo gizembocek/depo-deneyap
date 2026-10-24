@@ -1,0 +1,3 @@
+# Windows .bat dosyaları her zaman CRLF satır sonuyla, olduğu gibi saklansın
+# (LF'e çevrilirse cmd.exe bazı satırları yanlış okur).
+*.bat -text diff

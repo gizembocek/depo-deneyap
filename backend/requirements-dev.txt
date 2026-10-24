@@ -1,0 +1,5 @@
+# Testleri çalıştırmak için:  pip install -r requirements-dev.txt  ve  python -m pytest
+-r requirements.txt
+pytest>=7.0
+httpx>=0.24
+pypdf>=4.0

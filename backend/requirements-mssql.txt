@@ -1,0 +1,2 @@
+# SQL Server kullanılacaksa ek olarak kurun:  pip install -r requirements-mssql.txt
+pyodbc>=5.0.0
