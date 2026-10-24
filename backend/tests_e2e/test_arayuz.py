@@ -67,15 +67,6 @@ def server():
     _stop_server(proc)
 
 
-@pytest.fixture(scope="session")
-def browser():
-    with sync_playwright() as p:
-        exe = os.getenv("PW_CHROMIUM") or ("/opt/pw-browsers/chromium" if os.path.exists("/opt/pw-browsers/chromium") else None)
-        b = p.chromium.launch(executable_path=exe) if exe else p.chromium.launch()
-        yield b
-        b.close()
-
-
 class PageWatcher:
     """Konsol hatalarını, JS istisnalarını ve başarısız istekleri toplar."""
     def __init__(self, page):

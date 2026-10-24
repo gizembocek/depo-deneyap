@@ -40,3 +40,8 @@ pyrightconfig.json
 # Otomatik alınan sunucu yedekleri
 backend/yedekler/
 backend/.env.yedek_*
+
+# Netlify deneme sitesinin derlenmiş hali (demo/netlify_build.sh üretir)
+demo/_site/
+# Deneme sürümünün örnek rapor ve şablon dosyaları depoda kalmalı
+!demo/veri/*.xlsx

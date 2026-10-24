@@ -1,0 +1,6 @@
+# Netlify: çevrim içi DENEME SÜRÜMÜ (örnek verilerle, tamamen tarayıcıda çalışır; sunucu gerekmez).
+# Atölyelerdeki gerçek kurulum için Sistemi_Calistir.bat kullanılır, bu dosya onu etkilemez.
+[build]
+  base = "demo"
+  command = "sh netlify_build.sh"
+  publish = "_site"

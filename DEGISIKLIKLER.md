@@ -26,13 +26,14 @@ Bu sürümde veritabanı katmanı SQL Server için baştan sona incelendi, gerç
 - Python kaldırılıp başka bir sürüm kurulduğunda tüm `.bat` dosyaları "No Python at ..." hatasıyla açılmıyordu. Ortak `_ortam.bat` çalışmayan sanal ortamı fark edip yüklü Python ile yeniden kurar. Testler Python 3.10, 3.12 ve 3.13'te çalıştırıldı.
 - `Sistemi_Calistir.bat` tarayıcıyı sabit 4 saniye sonra açıyordu; SQL Server'a ilk bağlantı uzun sürünce "Bu siteye ulaşılamıyor" hatası görünüyordu. Tarayıcı artık sunucu yanıt vermeye başlayınca açılır.
 - Pencere açılınca ilk alana yapılan gecikmeli odaklama, yavaş bilgisayarlarda kullanıcı başka alana geçmişken odağı geri alıyor ve yazılanlar (ör. şifre) yanlış alana gidiyordu. Düzeltildi.
+- **Çevrim içi deneme sürümü** (`demo/`, Netlify): örnek atölye verileriyle tüm ekranlar kurulum yapmadan tarayıcıda gezilebilir. Veriler gerçek sunucu kodundan üretilir; değişiklikler kaydedilmez.
 - **Varsayılan/zayıf şifreyle giriş** yapan kullanıcıdan devam etmeden önce yeni şifre belirlemesi istenir.
 - **Toplu silme**de "Sadece depo atanmamış ürünler" seçeneği ve depo başına ürün sayısı.
 
 ## Testler
 
 - `backend/tests`: 137 API testi. Testler artık belirli bir atölyenin veri dosyasına bağlı değildir; eski sürüm veritabanının sorunlarını taşıyan örnek bir veritabanı (`tests/eski_veri.py`) her bilgisayarda oluşturulur.
-- `backend/tests_e2e`: 26 tarayıcı testi (Ayarlar sayfasından eski veritabanı temizliği dahil).
+- `backend/tests_e2e`: 28 tarayıcı testi (Ayarlar sayfasından eski veritabanı temizliği dahil).
 - Tüm testler Python 3.10, 3.12 ve 3.13'te, ayrıca SQL Server'ın yabancı anahtar davranışını taklit eden kipte çalıştırıldı.
 - Test sırasında oluşan görseller ve yedekler artık gerçek `uploads` / `yedekler` klasörlerine yazılmaz.
 - Tüm testler gerçek bir SQL Server 2025 Express üzerinde de çalıştırıldı. Windows'ta Türkçe çıktı okunamadığı için 4 testin hatalı sonuç vermesine yol açan kod sayfası sorunu giderildi.

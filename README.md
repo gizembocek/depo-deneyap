@@ -36,6 +36,10 @@ Bu sistem tüm bunları tek bir yerde, herkesin anlayacağı bir arayüzle çöz
 | **SQL Server desteği** | İsteğe bağlı: `SQL_Server_Kurulum.bat` sihirbazı SQL Server'ı bulur, veritabanını kurar ve verileri taşır |
 | **İlk kurulum sihirbazı** | İlk açılışta atölye adı ve yönetici hesabı oluşturulur, Deneyap dersleri otomatik eklenir |
 
+## Kurmadan deneyin
+
+`demo/` klasörü, sistemin **tarayıcıda çalışan bir deneme sürümünü** içerir: örnek bir atölyenin verileriyle tüm ekranlar gezilebilir, rapor örnekleri indirilebilir; değişiklikler kaydedilmez. Netlify'a bağlandığında (`netlify.toml` hazır) herkesin açabileceği bir bağlantı oluşur. Örnek veriler gerçek sunucu kodundan `python demo/olustur.py` ile üretilir.
+
 ## Hızlı kurulum (Windows)
 
 1. [Python 3.10 veya üstünü](https://www.python.org/downloads/) kurun (**"Add python.exe to PATH"** kutusunu işaretleyin).
@@ -65,7 +69,7 @@ uvicorn main:app --host 0.0.0.0 --port 8000
 
 ## Testler
 
-Sistem 137 otomatik API testi ve 26 tarayıcı (arayüz) testi ile doğrulanmıştır. Testler gerçek veritabanınıza dokunmaz.
+Sistem 137 otomatik API testi ve 28 tarayıcı (arayüz) testi ile doğrulanmıştır. Testler gerçek veritabanınıza dokunmaz.
 
 ```bash
 cd backend
@@ -114,6 +118,7 @@ depo-deneyap/
 │   ├── tests/, tests_e2e/    # otomatik testler
 │   └── uploads/              # ürün fotoğrafları
 ├── frontend/                 # arayüz (index.html, js/, css/, vendor/)
+├── demo/                     # çevrim içi deneme sürümü (Netlify): örnek veriler + demo.js
 └── assets/                   # logo, yazı tipleri, örnek görseller
 ```
 

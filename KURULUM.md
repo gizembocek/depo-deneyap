@@ -172,7 +172,20 @@ Neler denetlenir: kayıp/eksik tablo ve sütunlar, sahipsiz kayıtlar, yanlış 
 | Sihirbaz "LocalDB" buldu diyor | SQL Server Express kurulumu bitmemiş veya hiç kurulmamış. 4.1'deki adımları tamamlayıp sihirbazı tekrar çalıştırın. |
 ---
 
-## 7. Güncelleme
+## 7. Çevrim içi deneme sürümü (Netlify, isteğe bağlı)
+
+Sistemi kurmadan göstermek için (ör. tanıtım, destek başvurusu) tarayıcıda çalışan bir deneme sürümü yayınlanabilir. Sunucu gerekmez; örnek bir atölyenin verileri gösterilir ve değişiklikler kaydedilmez.
+
+1. https://app.netlify.com adresinde **GitHub ile** ücretsiz hesap açın.
+2. **Add new site → Import an existing project → GitHub** deyip `depo-deneyap` deposunu seçin.
+3. Ayarlar `netlify.toml` dosyasından otomatik gelir (Base directory: `demo`, Build command: `sh netlify_build.sh`, Publish directory: `_site`). **Deploy**'a basın.
+4. **Site configuration → Change site name** ile adresi ör. `deneyap-depo.netlify.app` yapın.
+
+GitHub'a her yüklemede deneme sürümü kendiliğinden güncellenir. Örnek verileri yenilemek için: `python demo/olustur.py` (Python ve `backend/requirements.txt` paketleri gerekir), ardından değişiklikleri GitHub'a yükleyin.
+
+---
+
+## 8. Güncelleme
 
 1. Ayarlar sayfasından **yedek alın**.
 2. Yeni sürümün dosyalarını eski klasörün üzerine kopyalayın (`venv`, `backend\deneyap_depo.db`, `backend\.env`, `backend\.secret_key` ve `backend\uploads` korunur).

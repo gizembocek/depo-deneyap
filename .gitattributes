@@ -1,3 +1,6 @@
 # Windows .bat dosyaları her zaman CRLF satır sonuyla, olduğu gibi saklansın
 # (LF'e çevrilirse cmd.exe bazı satırları yanlış okur).
 *.bat -text diff
+
+# Netlify derleme betiği Linux'ta çalışır: her zaman LF satır sonuyla saklansın
+*.sh text eol=lf
