@@ -8,7 +8,7 @@ Her atölye sistemi **kendi bilgisayarına** kurar. Kurulum tek bir dosyaya çif
 
 ## Neden gerekli?
 
-Bir Deneyap atölyesinde yüzlerce farklı malzeme bulunur (örnek atölyede 272 farklı malzeme). Bugün bu malzemeler çoğunlukla dağınık Excel dosyaları ve sözlü iletişimle takip ediliyor. Bunun sonuçları:
+Bir Deneyap atölyesinde yüzlerce farklı malzeme bulunur. Bugün bu malzemeler çoğunlukla dağınık Excel dosyaları ve sözlü iletişimle takip ediliyor. Bunun sonuçları:
 
 - **Malzeme aranırken ders zamanı kaybediliyor.** Hangi dolapta, hangi rafta olduğu bilinmiyor.
 - **Biten malzeme geç fark ediliyor.** Sarf malzemesi ders günü bittiğinde ders aksıyor.

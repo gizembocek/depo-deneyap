@@ -1,6 +1,6 @@
 # Değişiklikler — Sürüm 2.1 (Ekim 2026): SQL Server ve veritabanı denetimi
 
-Bu sürümde veritabanı katmanı SQL Server için baştan sona incelendi, gerçek atölye verisiyle karşılaşılan veri sorunları için denetim ve onarım aracı yazıldı.
+Bu sürümde veritabanı katmanı SQL Server için baştan sona incelendi; deneme kayıtlarıyla dolu mevcut veritabanında görülen veri sorunları (aynı listenin birkaç kez aktarılması, tekrar eden ürünler vb.) için denetim ve onarım aracı yazıldı.
 
 ## SQL Server'da düzeltilen hatalar
 
@@ -20,7 +20,7 @@ Bu sürümde veritabanı katmanı SQL Server için baştan sona incelendi, gerç
 
 - **`SQL_Server_Kurulum.bat`** — SQL Server kurulum sihirbazı: ODBC sürücüsünü ve SQL Server örneğini bulur, hizmeti başlatır, `deneyap_depo` veritabanını oluşturur, SQLite verilerini önce denetleyip taşır (SQLite dosyası değişmez), yönetici şifresini yenileme imkânı verir, Türkçe arama/sıralamayı sınar ve `.env` dosyasını yazar (eskisi yedeklenir). Yalnızca LocalDB veya 180 gün sonra kapanan **deneme sürümü (Evaluation)** bulunursa uyarır ve devam etmeden önce onay ister; birden fazla SQL Server kuruluysa atölyeye uygun sürümü (Express/Standard; yoksa Developer) seçer. Hedef veritabanında zaten veri varsa SQLite ile karşılaştırır; SQLite'taki veriler daha yeniyse uyarıp durur.
 - **`Veritabanlarini_Bul.bat`** — bilgisayardaki tüm Deneyap veritabanlarını (her SQL Server örneği, LocalDB, SQLite dosyaları ve yedekleri) bulur; ürün sayılarını ve son işlem tarihlerini yan yana göstererek en güncel olanı belirlemeyi kolaylaştırır. Hiçbir veritabanını değiştirmez.
-- **`SQL_Server_Test.bat`** — tüm otomatik testleri ve gerçek verinin taşınmasını SQL Server'da geçici veritabanlarında çalıştırır, sonra bu veritabanlarını siler.
+- **`SQL_Server_Test.bat`** — tüm otomatik testleri ve atölyenin kendi verilerinin taşınmasını SQL Server'da geçici veritabanlarında çalıştırır, sonra bu veritabanlarını siler.
 - **Veritabanı kontrolü** (Ayarlar sayfası ve `Veritabani_Kontrol.bat`): eksik tablo/sütun, sahipsiz kayıtlar, tutarsız depo/dolap/raf bağlantıları, varsayılan şifreyle açık kalmış örnek hesaplar, aynı dersin farklı yazımları, **aynı Excel'in birden çok kez aktarılması**, aynı depoda aynı adlı ürünler, ürünsüz gönderimler, güncel olmayan gönderim durumları ve ad boşlukları denetlenir. Düzeltmeden önce otomatik yedek alınır; ürün silen/birleştiren düzeltmeler yalnızca istenirse yapılır, stok hareketi olan bir kopya asla silinmez.
 - SQL Server'a geçilip veriler taşınmadan uygulama açılırsa, **İlk Kurulum ekranı** bilgisayardaki eski veritabanında kaç ürün olduğunu söyleyip sihirbazı çalıştırmanızı ister (yanlışlıkla boş veritabanında yeni kurulum yapılmasını önler).
 - Python kaldırılıp başka bir sürüm kurulduğunda tüm `.bat` dosyaları "No Python at ..." hatasıyla açılmıyordu. Ortak `_ortam.bat` çalışmayan sanal ortamı fark edip yüklü Python ile yeniden kurar. Testler Python 3.10, 3.12 ve 3.13'te çalıştırıldı.
@@ -42,7 +42,7 @@ Bu sürümde veritabanı katmanı SQL Server için baştan sona incelendi, gerç
 
 # Değişiklikler — Sürüm 2.0 (Ekim 2026)
 
-Bu sürümde projenin tamamı incelendi; hatalar gerçek verilerle (884 ürünlük veritabanı) tekrarlanıp düzeltildi ve her düzeltme otomatik testle güvenceye alındı.
+Bu sürümde projenin tamamı incelendi; hatalar mevcut deneme veritabanıyla (884 kayıt) tekrarlanıp düzeltildi ve her düzeltme otomatik testle güvenceye alındı.
 
 ## Kritik güvenlik düzeltmeleri
 
@@ -60,7 +60,7 @@ Bu sürümde projenin tamamı incelendi; hatalar gerçek verilerle (884 ürünl�
 
 ## Hata düzeltmeleri
 
-- **884 üründen yalnızca 50'si listeleniyordu.** Sayfalama eklendi (toplam sayı, sayfa numaraları).
+- **884 kayıtlı veritabanında yalnızca 50 ürün listeleniyordu.** Sayfalama eklendi (toplam sayı, sayfa numaraları).
 - **Çıkış işlemi stoğu eksiye düşürüyordu** (örnek: Multimetre −993). Artık stok yetersizse işlem yapılmaz.
 - **PDF raporunda Türkçe harfler (ş, ğ, ı, İ) "■" olarak çıkıyordu.** Türkçe destekli yazı tipi eklendi.
 - **Boş veritabanıyla ilk çalıştırmada 500 hatası** (tablolar oluşturulmuyordu). Eksik tablolar her açılışta güvenle oluşturuluyor.
