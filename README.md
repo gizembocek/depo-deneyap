@@ -38,7 +38,9 @@ Bu sistem tüm bunları tek bir yerde, herkesin anlayacağı bir arayüzle çöz
 
 ## Kurmadan deneyin
 
-`demo/` klasörü, sistemin **tarayıcıda çalışan bir deneme sürümünü** içerir: örnek bir atölyenin verileriyle tüm ekranlar gezilebilir, rapor örnekleri indirilebilir; değişiklikler kaydedilmez. Netlify'a bağlandığında (`netlify.toml` hazır) herkesin açabileceği bir bağlantı oluşur. Örnek veriler gerçek sunucu kodundan `python demo/olustur.py` ile üretilir.
+**👉 [deneyap-depo.netlify.app](https://deneyap-depo.netlify.app)**: kurulum gerekmez, bağlantıyı açmanız yeterli.
+
+`demo/` klasörü, sistemin **tarayıcıda çalışan bir deneme sürümünü** içerir: örnek bir atölyenin verileriyle tüm ekranlar gezilebilir, rapor örnekleri indirilebilir; değişiklikler kaydedilmez. Bu klasör Netlify'a bağlıdır (`netlify.toml`); GitHub'a her yüklemede deneme sitesi kendiliğinden güncellenir. Örnek veriler gerçek sunucu kodundan `python demo/olustur.py` ile üretilir.
 
 ## Hızlı kurulum (Windows)
 

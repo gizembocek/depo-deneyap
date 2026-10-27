@@ -177,9 +177,11 @@ Neler denetlenir: kayıp/eksik tablo ve sütunlar, sahipsiz kayıtlar, yanlış 
 Sistemi kurmadan göstermek için (ör. tanıtım, destek başvurusu) tarayıcıda çalışan bir deneme sürümü yayınlanabilir. Sunucu gerekmez; örnek bir atölyenin verileri gösterilir ve değişiklikler kaydedilmez.
 
 1. https://app.netlify.com adresinde **GitHub ile** ücretsiz hesap açın.
-2. **Add new site → Import an existing project → GitHub** deyip `depo-deneyap` deposunu seçin.
-3. Ayarlar `netlify.toml` dosyasından otomatik gelir (Base directory: `demo`, Build command: `sh netlify_build.sh`, Publish directory: `_site`). **Deploy**'a basın.
-4. **Site configuration → Change site name** ile adresi ör. `deneyap-depo.netlify.app` yapın.
+2. **Add new project → Import an existing project → GitHub** deyip `depo-deneyap` deposunu seçin. Depo listede yoksa listenin altındaki **Configure the Netlify app on GitHub** bağlantısıyla (ya da github.com/settings/installations → Netlify → Configure) depoya izin verin.
+3. **Project name** kutusuna ör. `deneyap-depo` yazın. Diğer ayarlar `netlify.toml` dosyasından otomatik gelir (Build command: `sh netlify_build.sh`, Publish directory: `_site`; Base directory kutusu boş kalabilir, `demo` değeri dosyadan okunur). Hiçbirini değiştirmeden **Deploy**'a basın.
+4. Proje **Private** görünüyorsa **Make public** düğmesine basın; aksi hâlde bağlantıyı yalnızca siz açabilirsiniz.
+
+Örnek: https://deneyap-depo.netlify.app
 
 GitHub'a her yüklemede deneme sürümü kendiliğinden güncellenir. Örnek verileri yenilemek için: `python demo/olustur.py` (Python ve `backend/requirements.txt` paketleri gerekir), ardından değişiklikleri GitHub'a yükleyin.
 
